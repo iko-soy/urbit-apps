@@ -1,0 +1,11 @@
+:~
+  title+'Fixture "quoted" ✓'
+  info+'A test desk for jammer.'
+  color+0xab.cdef
+  version+[1 2 1.000]
+  website+'https://example.com'
+  license+'MIT'
+  image+'https://example.com/icon.svg'
+  base+'fixture'
+  glob-ames+[~sampel-palnet 0v1l.lh2ff.co1oc.s4c5k.mlbtm.fubak.2ksqe.ol277.kaura.pk0nh.lp4rv]
+==
