@@ -4,6 +4,12 @@ Pack a desk directory into a `.deskjam` file that you can upload to
 [deskjam](https://github.com/tinnus-napbus/deskjam), and unpack `.deskjam`
 files back into directories, without a ship.
 
+You can install the files jammer makes with
+[iko-soy/deskjam](https://github.com/iko-soy/deskjam), a fork of deskjam that
+installs and updates apps from them: upload one at
+`https://your-ship/apps/deskjam`. See
+[Installing with deskjam](../README.md#installing-with-deskjam) for the steps.
+
 ```console
 $ jammer jam ./desk -d my-app
 packed 42 files (100.7 KiB) from ./desk as %my-app into my-app.deskjam (101.8 KiB)
