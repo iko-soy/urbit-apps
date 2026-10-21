@@ -12,7 +12,7 @@
       inputs.flake-utils.follows = "flake-utils";
     };
 
-    # Its packages.<system>.default is the full desk: it vendors its lib/,
+    # Its packages.<system>.desk is the full desk: it vendors its lib/,
     # mar/ and sur/ files.
     shelf = {
       url = "github:iko-soy/shelf";
@@ -26,21 +26,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    silo = {
-      url = "github:arthyn/silo";
-      flake = false;
-    };
-    # Desk dependencies, as silo's .github/helpers/deploy.sh takes them. It
-    # takes urbit at a tag from a repo variable; 408k-2 is the release of the
-    # 408 kernel, the newest silo's sys.kelvin lists.
-    silo-urbit = {
-      url = "github:urbit/urbit/408k-2";
-      flake = false;
-    };
-    silo-landscape = {
-      url = "github:tloncorp/landscape/master";
-      flake = false;
-    };
+    # silo's and vita's flakes build their desks and their globs, with the
+    # nixpkgs they pin, so both come out as their own repos build them.
+    silo.url = "github:iko-soy/silo";
+    vita.url = "github:iko-soy/vita";
 
     # Its desk/ is the full desk: it vendors its lib/, mar/ and sur/ files.
     accountability = {
@@ -71,8 +60,7 @@
       shelf,
       hits,
       silo,
-      silo-urbit,
-      silo-landscape,
+      vita,
       accountability,
       harness,
       harness-grubbery,
@@ -108,15 +96,42 @@
           };
         };
 
-        # Exits 0 if the docket file it's given names a glob: a glob-ames or
-        # glob-http term outside the docket's cords, tapes and comments,
-        # however the docket is laid out.
-        names-glob = pkgs.writers.writePerlBin "names-glob" { } ''
-          local $/;
-          my $docket = <>;
-          $docket =~ s/'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|::[^\n]*//g;
-          exit($docket =~ /(?<![\w-])glob-(?:ames|http)(?![\w-])/ ? 0 : 1);
-        '';
+        # Reads the docket file it's given as the docket mark does, with
+        # `ream` and `slap` in `urbit eval`, so any layout Hoon accepts reads
+        # the same. Exits 0 if it names a glob: a glob-http or glob-ames
+        # clause, and no site clause, which lib/docket prefers. Exits 1 if
+        # it doesn't, and 2 if it isn't a valid docket.
+        names-glob = pkgs.writeShellApplication {
+          name = "names-glob";
+          runtimeInputs = [
+            pkgs.urbit
+            pkgs.util-linux
+          ];
+          excludeShellChecks = [ "SC2016" ];
+          text = ''
+            # the file's bytes as a Hoon @ux literal: an atom, first byte
+            # lowest, with a dot between each group of four hex digits
+            hex=$(od -An -v -tx1 -w1 "$1" | tac | tr -d ' \n' | sed 's/^0*//')
+            atom=0x$(printf '%s' "''${hex:-0}" | rev | sed -E 's/([0-9a-f]{4})/\1./g; s/\.$//' | rev)
+            out=$(
+              {
+                printf '=/  tex  `@t`%s\n' "$atom"
+                echo '=/  cls  ;;((list [@tas *]) q:(slap !>(~) (ream tex)))'
+                echo '=/  has  |=(t=@tas (lien cls |=([h=@tas *] =(h t))))'
+                echo '?&(!(has %site) |((has %glob-http) (has %glob-ames)))'
+              } | urbit eval 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | tr -d '\r'
+            )
+            case $(printf '%s\n' "$out" | tail -n 1) in
+              '%.y') exit 0 ;;
+              '%.n') exit 1 ;;
+              *)
+                echo "$1 isn't a valid docket: Hoon can't read it as a list of clauses" >&2
+                printf '%s\n' "$out" >&2
+                exit 2
+                ;;
+            esac
+          '';
+        };
 
         # Pack the desk `src` into $out/<desk>.deskjam.
         #
@@ -141,13 +156,19 @@
             ''
               cp -r --no-preserve=mode ${src} ${desk}
               glob=${pkgs.lib.optionalString (glob != null) "${glob}"}
-              if [ -f ${desk}/desk.docket-0 ] && names-glob ${desk}/desk.docket-0; then
-                if [ -z "$glob" ]; then
-                  echo "The docket of %${desk} names a glob: give mkDeskjam the built frontend as glob" >&2
+              names=
+              if [ -f ${desk}/desk.docket-0 ]; then
+                if names-glob ${desk}/desk.docket-0; then
+                  names=yes
+                elif [ $? != 1 ]; then
                   exit 1
                 fi
-              elif [ -n "$glob" ]; then
-                echo "The docket of %${desk} names no glob, but mkDeskjam got one" >&2
+              fi
+              if [ -n "$names" ] && [ -z "$glob" ]; then
+                echo "The docket of %${desk} names a glob: give mkDeskjam the built frontend as glob" >&2
+                exit 1
+              elif [ -z "$names" ] && [ -n "$glob" ]; then
+                echo "%${desk} has no docket that names a glob, but mkDeskjam got one" >&2
                 exit 1
               fi
               mkdir $out
@@ -159,12 +180,12 @@
 
         deskjam-desk = mkDeskjam {
           desk = "deskjam";
-          src = deskjam.packages.${system}.deskjam;
+          src = deskjam.packages.${system}.desk;
         };
 
         shelf-desk = mkDeskjam {
           desk = "shelf";
-          src = shelf.packages.${system}.default;
+          src = shelf.packages.${system}.desk;
         };
 
         # Build a frontend: `npm run build` in its npm project `src`, whose
@@ -197,23 +218,16 @@
           glob = hits-glob;
         };
 
-        silo-glob = mkGlob {
-          desk = "silo";
-          src = "${silo}/ui";
-          npmDepsHash = "sha256-kZaVn4+ORa9Cm100f8/VS1sCWwHOC6rxDvLnz4S5+p0=";
-        };
-
-        # The desk silo's deploy.sh commits: all of urbit's pkg/base-dev, then
-        # landscape's desk-dev, then silo's desk/ over them.
         silo-desk = mkDeskjam {
           desk = "silo";
-          src = pkgs.runCommand "silo-desk" { } ''
-            mkdir $out
-            cp -rL --no-preserve=mode ${silo-urbit}/pkg/base-dev/. $out/
-            cp -rL --no-preserve=mode ${silo-landscape}/desk-dev/. $out/
-            cp -rL --no-preserve=mode ${silo}/desk/. $out/
-          '';
-          glob = silo-glob;
+          src = silo.packages.${system}.desk;
+          glob = silo.packages.${system}.glob;
+        };
+
+        vita-desk = mkDeskjam {
+          desk = "vita";
+          src = vita.packages.${system}.default;
+          glob = vita.packages.${system}.glob;
         };
 
         accountability-desk = mkDeskjam {
@@ -247,7 +261,7 @@
           case $1 in
             init | remote) ;;
             cat-file) pinned "''${3%"^{commit}"}" ;;
-            checkout) for arg; do :; done; pinned "$arg" ;;
+            checkout | fetch) for arg; do :; done; pinned "$arg" ;;
             show) pinned "''${2%%:*}"; cat "$src/''${2#*:}" ;;
             *) echo "git: unexpected command: $*" >&2; exit 1 ;;
           esac
@@ -286,12 +300,16 @@
             runHook postBuild
           '';
           installPhase = ''
+            runHook preInstall
             if [ ! -f zig-out/web/index.html ]; then
               echo "harness' desk has no web/index.html: its frontend is missing" >&2
               exit 1
             fi
             cp -r zig-out $out
+            runHook postInstall
           '';
+          # the output is a desk: leave its files as they are
+          dontFixup = true;
         };
 
         harness-desk = mkDeskjam {
@@ -307,7 +325,9 @@
           hits = hits-desk;
           inherit hits-glob;
           silo = silo-desk;
-          inherit silo-glob;
+          silo-glob = silo.packages.${system}.glob;
+          vita = vita-desk;
+          vita-glob = vita.packages.${system}.glob;
           accountability = accountability-desk;
           harness = harness-desk;
           default = jammer;
