@@ -10,9 +10,10 @@ files.
 
 | App | Description | Source | Build |
 |---|---|---|---|
+| `%accountability` | Watches all 256 galaxies from your ship. Every 10 minutes it checks each one's keys on chain, whether it answers, and which `%kids` OTA it serves, and logs every change. A dashboard at `/apps/accountability` and a public JSON API show the results. It needs `%azimuth` running, as on a livenet ship. | [sigilante/accountability](https://github.com/sigilante/accountability) | `nix build .#accountability` |
 | `%deskjam` | Install and update apps, and upload and download desks, as deskjam files, in your ship's web interface at `/apps/deskjam`. A fork of [tinnus-napbus/deskjam](https://github.com/tinnus-napbus/deskjam). | [iko-soy/deskjam](https://github.com/iko-soy/deskjam) | `nix build .#deskjam` |
-| `%hits` | Ranks apps by how many installs they have among the ships around you, which gossip their installs to their Pals and the ships they chat with in Tlon. There's no central server. Its frontend is a glob: see [Frontends](#frontends). A fork of [urbit/hits](https://github.com/urbit/hits). | [iko-soy/hits](https://github.com/iko-soy/hits) | `nix build .#hits` |
-| `%mcp` | An MCP (Model Context Protocol) server at `/mcp` that lets AI tools use your ship, and a proxy at `/apps/mcp/mcp` that offers its tools together with those of remote MCP and OpenAPI servers. A fork of [gwbtc/urbit-mcp](https://github.com/gwbtc/urbit-mcp). | [tloncorp/mcp](https://github.com/tloncorp/mcp) | `nix build .#mcp` |
+| `%harness` | Runs AI agents on your ship. Talk to them in its web app at `/apps/harness`, in Tlon, or from an editor, while the ship keeps the conversations, permissions and work. Models come from providers you configure, such as OpenRouter, OpenAI or Anthropic. Its Tlon features need `%groups`. | [mopfel-winrux/urbit-agent-harness](https://github.com/mopfel-winrux/urbit-agent-harness) | `nix build .#harness` |
+| `%hits` | Ranks apps by how many installs they have among the ships around you, which gossip their installs to their Pals and the ships they chat with in Tlon. There's no central server. It works without `%pals`, but then hears only from the ships you chat with. It only counts apps installed from another ship with `|install`, not ones installed from a deskjam file. Its frontend is a glob: see [Frontends](#frontends). A fork of [urbit/hits](https://github.com/urbit/hits). | [iko-soy/hits](https://github.com/iko-soy/hits) | `nix build .#hits` |
 | `%shelf` | A public web page that lists the apps your ship publishes, so anyone can install them on their own ship. It answers at `/shelf`, for a reverse proxy to serve at the root of its own domain, and needs `%landscape`, which fresh ships have. | [iko-soy/shelf](https://github.com/iko-soy/shelf) | `nix build .#shelf` |
 | `%silo` | A file manager for the S3 storage your ship uploads to: add a bucket's credentials, then browse its files and upload new ones. It has no agents of its own, and uses `%storage` from `%landscape`, which fresh ships have. | [arthyn/silo](https://github.com/arthyn/silo) | `nix build .#silo` |
 
@@ -24,12 +25,13 @@ checkout, give the repo's address instead of `.`, such as
 itself, at the version `flake.lock` pins.
 
 Each build writes `result/<desk>.deskjam`, such as `result/shelf.deskjam`, in
-place of the last build's `result`. For an app with a web frontend, a glob,
-it also writes the glob's files next to it, as `result/<desk>-glob`, and the
-build fails if `flake.nix` doesn't build them, so a deskjam never comes
-without its glob. `nix build .#hits-glob` or `.#silo-glob` builds just a glob.
-`nix build .#deskjam .#hits .#mcp .#shelf .#silo` builds all five, into
-`result`, `result-1`, `result-2`, `result-3` and `result-4`.
+place of the last build's `result`. For an app whose web frontend is a glob,
+such as hits, it also writes the glob's files next to it, as
+`result/<desk>-glob`, and the build fails if `flake.nix` doesn't build them,
+so a deskjam never comes without its glob. `nix build .#hits-glob` or
+`.#silo-glob` builds just a glob. `nix build .#accountability .#deskjam
+.#harness .#hits .#shelf .#silo` builds all six, into `result` and `result-1`
+to `result-5`.
 
 You can install these files on your ship with
 [iko-soy/deskjam](https://github.com/iko-soy/deskjam): see
@@ -47,7 +49,8 @@ these files. Only install apps you trust: an app's agents, its programs, run
 as your ship, and can read and change anything on it.
 
 If you build on another machine, such as the server your ship runs on, copy
-the file to the computer your browser runs on first, for example with `scp`.
+the file, and its `<desk>-glob` folder if it has one, to the computer your
+browser runs on first, for example with `scp -r`.
 
 ### Getting deskjam
 
@@ -81,10 +84,7 @@ After that, update deskjam like any other app, as below.
    click **confirm**.
 5. The status page says whether the app runs.
 
-Once it runs, see the app's README for how to set it up. mcp's README
-describes an operator console at `/apps/mcp/`, which this version of mcp
-doesn't have. MCP clients send mcp's API key in an `X-Api-Key` header, and
-`.^(@t %gx /=mcp-proxy=/client-key/noun)` in the dojo prints it.
+Once it runs, see the app's README for how to set it up.
 
 ### Updating an app
 
@@ -102,8 +102,7 @@ Apps installed this way don't update on their own. To update one:
 Uploading the kept copy with **replace it** puts the old version back. If the
 update changed the state an agent keeps, that usually fails, and nothing
 changes. But some agents start afresh from state they can't read, and lose it
-instead: deskjam's and mcp's do. For mcp, that means a new API key, and its
-remote servers and OAuth grants are gone.
+instead: deskjam's does.
 
 If the app came from another ship with `|install`, kiln, the part of your
 ship that installs and updates apps, keeps it in sync with that ship. That
@@ -114,23 +113,40 @@ upload with their latest release.
 
 ### Frontends
 
-An app's web frontend, its glob, isn't part of its desk. Landscape's
-`%docket` agent gets it as the app's docket says, and the build puts it next
-to the deskjam, as `result/<desk>-glob`:
+Some apps' web frontends are globs, which aren't part of their desks.
+Landscape's `%docket` agent gets an app's glob as its docket says, and the
+build puts the glob's files next to the deskjam, as `result/<desk>-glob`. That
+folder is what you upload at `/docket/upload`: choose the app's desk and the
+folder, and click **glob!**. Use a browser other than Safari, which can't
+upload folders.
 
 - silo's docket has `%docket` download its glob from a url, so `silo.deskjam`
-  works on any ship. You need `result/silo-glob` only to serve the frontend
-  from your own ship instead, as deskjam's
+  works on any ship, with nothing to upload.
+- hits' docket has `%docket` get its glob from `~donmec-sallud` over Ames,
+  with a placeholder hash. On your ship, click **set** in the glob box on the
+  confirm page when you install `hits.deskjam`, so your ship serves the glob
+  instead, and once hits runs, upload `result/hits-glob`. On
+  `~donmec-sallud`, hits' docket already names your ship, so just upload the
+  glob. Without its glob, hits runs, but has no frontend.
+- To serve silo's frontend from your own ship too, click **set** the same way
+  and upload `result/silo-glob`, as deskjam's
   [Serving a glob from your ship](https://github.com/iko-soy/deskjam/blob/main/docs/globs.md#serving-a-glob-from-your-ship)
   says.
-- hits' docket has `%docket` get its glob from `~donmec-sallud` over Ames,
-  with a placeholder hash, so `hits.deskjam` is for that ship. There, install
-  it, then open `/docket/upload`, choose the desk `hits` and the folder
-  `result/hits-glob`, and click **glob!**. When you update hits with deskjam,
-  click **set** in the glob box on the confirm page first, or hits loses its
-  frontend until you upload it again. Other ships get hits, frontend
-  included, from that ship once it publishes hits:
-  `|install ~donmec-sallud %hits`.
+
+When you update an app whose glob your ship serves, click **set** in the glob
+box on the confirm page first, which keeps the glob your ship serves now.
+Then upload the new `result/<desk>-glob`, so the frontend matches the new
+version. If the app was suspended, as after a kernel update, `%docket`
+forgets its glob when the app starts again, even after **set**: upload it
+again.
+
+To let other ships install an app from yours, frontend included, publish it:
+`:treaty|publish %hits` makes it public and lists it in Landscape, and
+`|public %hits` is enough for `|install ~your-ship %hits`.
+
+The other apps have no glob: accountability, deskjam, harness and shelf
+serve their pages from their own agents. harness' frontend is in its desk,
+so `harness.deskjam` already has it.
 
 ### Kernel updates
 
@@ -151,19 +167,36 @@ has the details, including what to do when an upload goes wrong.
   `.deskjam` file has the files that repo's own build makes. jammer leaves
   out the files a `|commit` would skip too, such as hits' `LICENSE`, which has
   no extension.
-- mcp's repo builds its desk with `zig build`, which copies some files from
-  other repos at pinned commits. `flake.nix` copies the same files from the
-  same commits. After moving mcp's pin, check that its `build.zig` still lists
-  the same files and commits, and change `flake.nix` to match if not: nothing
-  checks this for you.
+- accountability has no flake, and its `desk/` is the whole desk, which
+  `flake.nix` packs as it is.
+- harness' repo builds its desk with `zig build`. It builds `fe/`, its
+  frontend, into the desk's `web/`, which harness' own agent serves; fetches
+  grubbery and some of Tlon's files with git, at commits it pins; and patches
+  grubbery's desk under harness' own. `flake.nix` runs the same `zig build`
+  with npm's packages fetched ahead, and a stand-in `git` that answers from
+  inputs pinned to the same commits, and fails if the build asks for any
+  other: when a new version of harness pins other commits, move
+  `harness-grubbery` or `harness-tlon` to them. The build also fails if the
+  desk has no `web/index.html`, so it can't come out without its frontend.
 - silo has no flake. Its CI deploys all of urbit's `pkg/base-dev`, then
   landscape's `desk-dev`, then its own `desk/`, and `flake.nix` builds the
-  same, with landscape at `master`, as the CI takes it, and urbit at
-  `408k-2`, since the CI's tag isn't public. After moving silo's pin, check
-  its `.github/helpers/deploy.sh`.
-- A desk whose docket names a glob only builds with its glob, which
-  `flake.nix` builds from the app's `ui/`. A glob for a desk whose docket
-  names none fails the build too.
+  same, with landscape at `master`, as the CI takes it. The CI's urbit tag
+  isn't public, so `flake.nix` takes `408k-2`, the release of the newest
+  kernel silo lists; when silo lists a newer one, move `silo-urbit` to its
+  tag. A few of base-dev's libraries import files the desk lacks, so
+  deskjam's confirm page warns about them, but silo doesn't use them. silo's
+  old esbuild names two unused variables at random, so `silo-glob` can differ
+  by a few bytes from one build to the next, and
+  `nix build --rebuild .#silo-glob` can fail. The page works the same either
+  way.
+- A desk whose docket names a glob, however the docket is laid out, only
+  builds with its glob, which `flake.nix` builds from the app's `ui/`. A glob
+  for a desk whose docket names none fails the build too.
+- A hash in `flake.nix` pins each frontend's npm packages: each glob's
+  `npmDepsHash`, and the `hash` of harness' `npmDeps`. When moving an app's
+  pin changes its `package-lock.json`, its build stops with a hash mismatch,
+  or `npmDepsHash is out of date`. Set that hash to `pkgs.lib.fakeHash`,
+  build again, and put the hash the error shows after `got:` in its place.
 
 ## jammer
 
