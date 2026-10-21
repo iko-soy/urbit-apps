@@ -10,27 +10,28 @@ files.
 
 | App | Description | Source | Build |
 |---|---|---|---|
-| `%accountability` | Watches all 256 galaxies from your ship. Every 10 minutes it checks each one's keys on chain, whether it answers, and which `%kids` OTA it serves, and logs every change. A dashboard at `/apps/accountability` and a public JSON API show the results. It needs `%azimuth` running, as on a livenet ship. | [sigilante/accountability](https://github.com/sigilante/accountability) | `nix build .#accountability` |
-| `%deskjam` | Install and update apps, and upload and download desks, as deskjam files, in your ship's web interface at `/apps/deskjam`. A fork of [tinnus-napbus/deskjam](https://github.com/tinnus-napbus/deskjam). | [iko-soy/deskjam](https://github.com/iko-soy/deskjam) | `nix build .#deskjam` |
-| `%harness` | Runs AI agents on your ship. Talk to them in its web app at `/apps/harness`, in Tlon, or from an editor, while the ship keeps the conversations, permissions and work. Models come from providers you configure, such as OpenRouter, OpenAI or Anthropic. Its Tlon features and its documents need `%groups`. Installing it takes a few minutes, while Clay builds it. | [mopfel-winrux/urbit-agent-harness](https://github.com/mopfel-winrux/urbit-agent-harness) | `nix build .#harness` |
-| `%hits` | Ranks apps by how many installs they have among the ships around you, which gossip their installs to their Pals and the ships they chat with in Tlon. There's no central server. It works without `%pals`, but then hears only from the ships you chat with. It only counts apps that kiln syncs from another ship, as after `\|install`: not ones installed from a deskjam file, or ones you stop kiln syncing. Its frontend is a glob: see [Frontends](#frontends). A fork of [urbit/hits](https://github.com/urbit/hits). | [iko-soy/hits](https://github.com/iko-soy/hits) | `nix build .#hits` |
-| `%shelf` | A public web page that lists the apps your ship publishes, so anyone can install them on their own ship. It answers at `/shelf`, for a reverse proxy to serve at the root of its own domain, and needs `%landscape`, which fresh ships have. | [iko-soy/shelf](https://github.com/iko-soy/shelf) | `nix build .#shelf` |
-| `%silo` | A file manager for the S3 storage your ship uploads to: add a bucket's credentials, then browse its files and upload new ones. It has no agents of its own, and uses `%storage` from `%landscape`, which fresh ships have. Its frontend is a glob: see [Frontends](#frontends). A fork of [arthyn/silo](https://github.com/arthyn/silo). | [iko-soy/silo](https://github.com/iko-soy/silo) | `nix build .#silo` |
-| `%vita` | Tracks how your published apps spread: how many ships sync each of your desks, and the daily active users that apps using its `vita-client` library report, with a dashboard for creating and maintaining apps. Its frontend is a glob: see [Frontends](#frontends). A fork of [assemblycapital/vita](https://github.com/assemblycapital/vita), updated for kernel 408. | [iko-soy/vita](https://github.com/iko-soy/vita) | `nix build .#vita` |
+| `%accountability` | Watches all 256 galaxies from your ship. Every 10 minutes it checks each one's keys on chain, whether it answers, and which `%kids` OTA it serves, and logs every change. A dashboard at `/apps/accountability` and a public JSON API show the results. It needs `%azimuth` running, as on a livenet ship. | [sigilante/accountability](https://github.com/sigilante/accountability) | `nix build github:iko-soy/urbit-apps#accountability` |
+| `%deskjam` | Install and update apps, and upload and download desks, as deskjam files, in your ship's web interface at `/apps/deskjam`. A fork of [tinnus-napbus/deskjam](https://github.com/tinnus-napbus/deskjam). | [iko-soy/deskjam](https://github.com/iko-soy/deskjam) | `nix build github:iko-soy/urbit-apps#deskjam` |
+| `%harness` | Runs AI agents on your ship. Talk to them in its web app at `/apps/harness`, in Tlon, or from an editor, while the ship keeps the conversations, permissions and work. Models come from providers you configure, such as OpenRouter, OpenAI or Anthropic. Its Tlon features and its documents need `%groups`. Installing it takes a few minutes, while Clay builds it. | [mopfel-winrux/urbit-agent-harness](https://github.com/mopfel-winrux/urbit-agent-harness) | `nix build github:iko-soy/urbit-apps#harness` |
+| `%hits` | Ranks apps by how many installs they have among the ships around you, which gossip their installs to their Pals and the ships they chat with in Tlon. There's no central server. It works without `%pals`, but then hears only from the ships you chat with. It only counts apps that kiln syncs from another ship, as after `\|install`: not ones installed from a deskjam file, or ones you stop kiln syncing. Its frontend is a glob: see [Frontends](#frontends). A fork of [urbit/hits](https://github.com/urbit/hits). | [iko-soy/hits](https://github.com/iko-soy/hits) | `nix build github:iko-soy/urbit-apps#hits` |
+| `%shelf` | A public web page that lists the apps your ship publishes, so anyone can install them on their own ship. It answers at `/shelf`, for a reverse proxy to serve at the root of its own domain, and needs `%landscape`, which fresh ships have. | [iko-soy/shelf](https://github.com/iko-soy/shelf) | `nix build github:iko-soy/urbit-apps#shelf` |
+| `%silo` | A file manager for the S3 storage your ship uploads to: add a bucket's credentials, then browse its files and upload new ones. It has no agents of its own, and uses `%storage` from `%landscape`, which fresh ships have. Its frontend is a glob: see [Frontends](#frontends). A fork of [arthyn/silo](https://github.com/arthyn/silo). | [iko-soy/silo](https://github.com/iko-soy/silo) | `nix build github:iko-soy/urbit-apps#silo` |
+| `%vita` | Tracks how your published apps spread: how many ships sync each of your desks, and the daily active users that apps using its `vita-client` library report, with a dashboard for creating and maintaining apps. Its frontend is a glob: see [Frontends](#frontends). A fork of [assemblycapital/vita](https://github.com/assemblycapital/vita), updated for kernel 408. | [iko-soy/vita](https://github.com/iko-soy/vita) | `nix build github:iko-soy/urbit-apps#vita` |
 
-Run the build commands in a checkout of this repo, with Nix and flakes
-enabled. If flakes aren't enabled, put
-`--extra-experimental-features 'nix-command flakes'` after `nix`. Without a
-checkout, give the repo's address instead of `.`, such as
-`nix build github:iko-soy/urbit-apps#shelf`. Nix fetches each app's source
-itself, at the version `flake.lock` pins.
+The build commands need Nix with flakes enabled, but no clone of this repo:
+Nix fetches it from GitHub, and each app's source at the version `flake.lock`
+pins. If flakes aren't enabled, put
+`--extra-experimental-features 'nix-command flakes'` after `nix`. In a
+checkout of this repo, `.` builds your working copy instead, as in
+`nix build .#shelf`.
 
 Each build writes `result/<desk>.deskjam`, such as `result/shelf.deskjam`, in
 place of the last build's `result`. For an app whose web frontend is a glob,
 such as hits, it also writes the glob's files next to it, as
 `result/<desk>-glob`, and the build fails if `flake.nix` doesn't build them,
-so a deskjam never comes without its glob. `nix build .#hits-glob`,
-`.#silo-glob` or `.#vita-glob` builds just a glob.
+so a deskjam never comes without its glob.
+`nix build github:iko-soy/urbit-apps#hits-glob`, or `#silo-glob` or
+`#vita-glob`, builds just a glob. In a checkout,
 `nix build .#accountability .#deskjam .#harness .#hits .#shelf .#silo .#vita`
 builds all seven, in that order, into `result` and `result-1` to `result-6`.
 The steps below assume one app's `result`.
@@ -93,9 +94,13 @@ Once it runs, see the app's README for how to set it up.
 
 Apps installed this way don't update on their own. To update one:
 
-1. Move its pin to the latest commit of its repo, such as with
-   `nix flake update shelf`, and build it again. `nix flake update` moves
-   every app, and nixpkgs.
+1. Build it again. Nix reuses a copy of this repo it fetched in the last hour,
+   so add `--refresh` to get the pins it has now:
+   `nix build --refresh github:iko-soy/urbit-apps#shelf`. To build an app's
+   newest commit before this repo pins it, add
+   `--override-input shelf github:iko-soy/shelf`. In a checkout,
+   `nix flake update shelf` moves the pin, and `nix flake update` moves every
+   app, and nixpkgs.
 2. Upload the new file as above. Under **Update an existing desk**, choose the
    app's desk, select **replace it**, and click **next**. Replace makes the
    desk exactly the upload, so files a new version removed don't linger.
@@ -176,7 +181,8 @@ has the details, including what to do when an upload goes wrong.
   leaves out the files a `|commit` would skip too, such as hits' `LICENSE`,
   which has no extension. silo's and vita's flakes build their globs too, and
   this flake takes them as they are, with the nixpkgs those flakes pin: so
-  `.#silo-glob` is the same build as `github:iko-soy/silo#glob`. Their desks
+  `github:iko-soy/urbit-apps#silo-glob` is the same build as
+  `github:iko-soy/silo#glob`. Their desks
   include all of urbit's base-dev, so deskjam's confirm page warns about a
   few of its libraries that import files the desks lack, but the apps don't
   use them.
