@@ -29,11 +29,11 @@
         "urbit": "urbit"
       },
       "locked": {
-        "lastModified": 1792580792,
-        "narHash": "sha256-fC9y1fVJUZaUqahGyMzzBEXgwd6gOfr9cDbc4aaXpe4=",
+        "lastModified": 1792584136,
+        "narHash": "sha256-YnMsLXViNtQi+B029JFuVFYM8IzjGxPQLUCOPjlaktQ=",
         "owner": "iko-soy",
         "repo": "deskjam",
-        "rev": "d892252eafc5522c9c95a758148c9b3f86e8a857",
+        "rev": "d0bb6b31803336e66a19ee6daeedd98a02813bd4",
         "type": "github"
       },
       "original": {
