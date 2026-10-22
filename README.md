@@ -6,14 +6,20 @@ file. You install it in your ship's web interface with
 [deskjam](https://github.com/iko-soy/deskjam), without access to the ship's
 files.
 
+Every app here is also published from `~donmec-sallud`, so you can install
+it from that ship instead, with nothing to build: see
+[Installing from ~donmec-sallud](#installing-from-donmec-sallud).
+
 ## Apps
 
 | App | Description | Source | Build |
 |---|---|---|---|
 | `%accountability` | Watches all 256 galaxies from your ship. Every 10 minutes it checks each one's keys on chain, whether it answers, and which `%kids` OTA it serves, and logs every change. A dashboard at `/apps/accountability` and a public JSON API show the results. It needs `%azimuth` running, as on a livenet ship. | [sigilante/accountability](https://github.com/sigilante/accountability) | `nix build github:iko-soy/urbit-apps#accountability` |
+| `%burn` | Shares a Plex server's media library between ships. Every byte goes over Ames and is checked against its hash, so a ship behind NAT can share with no port forwarding. Its page is new-oxal's `/new-oxal/plex`, so install `%new-oxal` too. | [brbenji/burn](https://github.com/brbenji/burn) | `nix build github:iko-soy/urbit-apps#burn` |
 | `%deskjam` | Install and update apps, and upload and download desks, as deskjam files, in your ship's web interface at `/apps/deskjam`. A fork of [tinnus-napbus/deskjam](https://github.com/tinnus-napbus/deskjam). | [iko-soy/deskjam](https://github.com/iko-soy/deskjam) | `nix build github:iko-soy/urbit-apps#deskjam` |
 | `%harness` | Runs AI agents on your ship. Talk to them in its web app at `/apps/harness`, in Tlon, or from an editor, while the ship keeps the conversations, permissions and work. Models come from providers you configure, such as OpenRouter, OpenAI or Anthropic. Its Tlon features and its documents need `%groups`. Installing it takes a few minutes, while Clay builds it. | [mopfel-winrux/urbit-agent-harness](https://github.com/mopfel-winrux/urbit-agent-harness) | `nix build github:iko-soy/urbit-apps#harness` |
 | `%hits` | Ranks apps by how many installs they have among the ships around you, which gossip their installs to their Pals and the ships they chat with in Tlon. There's no central server. It works without `%pals`, but then hears only from the ships you chat with. It only counts apps that kiln syncs from another ship, as after `\|install`: not ones installed from a deskjam file, or ones you stop kiln syncing. Its frontend is a glob: see [Frontends](#frontends). A fork of [urbit/hits](https://github.com/urbit/hits). | [iko-soy/hits](https://github.com/iko-soy/hits) | `nix build github:iko-soy/urbit-apps#hits` |
+| `%new-oxal` | A networked reactive database, shown as a tree-shaped spreadsheet. Its views include burn's page, at `/new-oxal/plex`, which needs `%burn`. It comes from burn's repo. | [brbenji/burn](https://github.com/brbenji/burn) | `nix build github:iko-soy/urbit-apps#new-oxal` |
 | `%shelf` | A public web page that lists the apps your ship publishes, so anyone can install them on their own ship. It answers at `/shelf`, for a reverse proxy to serve at the root of its own domain, and needs `%landscape`, which fresh ships have. | [iko-soy/shelf](https://github.com/iko-soy/shelf) | `nix build github:iko-soy/urbit-apps#shelf` |
 | `%silo` | A file manager for the S3 storage your ship uploads to: add a bucket's credentials, then browse its files and upload new ones. It has no agents of its own, and uses `%storage` from `%landscape`, which fresh ships have. Its frontend is a glob: see [Frontends](#frontends). A fork of [arthyn/silo](https://github.com/arthyn/silo). | [iko-soy/silo](https://github.com/iko-soy/silo) | `nix build github:iko-soy/urbit-apps#silo` |
 | `%vita` | Tracks how your published apps spread: how many ships sync each of your desks, and the daily active users that apps using its `vita-client` library report, with a dashboard for creating and maintaining apps. Its frontend is a glob: see [Frontends](#frontends). A fork of [assemblycapital/vita](https://github.com/assemblycapital/vita), updated for kernel 408. | [iko-soy/vita](https://github.com/iko-soy/vita) | `nix build github:iko-soy/urbit-apps#vita` |
@@ -32,8 +38,8 @@ such as hits, it also writes the glob's files next to it, as
 so a deskjam never comes without its glob.
 `nix build github:iko-soy/urbit-apps#hits-glob`, or `#silo-glob` or
 `#vita-glob`, builds just a glob. In a checkout,
-`nix build .#accountability .#deskjam .#harness .#hits .#shelf .#silo .#vita`
-builds all seven, in that order, into `result` and `result-1` to `result-6`.
+`nix build .#accountability .#burn .#deskjam .#harness .#hits .#new-oxal .#shelf .#silo .#vita`
+builds all nine, in that order, into `result` and `result-1` to `result-8`.
 The steps below assume one app's `result`.
 
 You can install these files on your ship with
@@ -44,6 +50,15 @@ The first build also compiles [jammer](#jammer), the tool that packs the
 desks. No Hoon is compiled: your ship compiles an app's Hoon when you install
 it. The flake supports `x86_64-linux`, `aarch64-linux` and `aarch64-darwin`
 (Apple silicon Macs).
+
+## Installing from ~donmec-sallud
+
+`~donmec-sallud` publishes every app in the [table](#apps). To install one
+from it, run `|install ~donmec-sallud` and the app's name in the dojo, your
+ship's command line, as in `|install ~donmec-sallud %shelf`. Your ship gets
+the app, frontend included, and its updates from that ship.
+[shelf.iko.soy](https://shelf.iko.soy) lists all the apps `~donmec-sallud`
+offers, with the command that installs each.
 
 ## Installing with deskjam
 
@@ -62,8 +77,8 @@ that doesn't have it yet. The first time, do one of these:
 
 - If you can reach your ship's files, follow deskjam's
   [Installation](https://github.com/iko-soy/deskjam#installation).
-- If another ship publishes it, run `|install ~that-ship %deskjam` in the
-  dojo, your ship's command line.
+- Install it from `~donmec-sallud`: run `|install ~donmec-sallud %deskjam`
+  in the dojo.
 - If your ship runs upstream deskjam,
   [tinnus-napbus/deskjam](https://github.com/tinnus-napbus/deskjam), upload
   `result/deskjam.deskjam` through it, following
@@ -115,12 +130,13 @@ instead: deskjam's does. If your ship serves the app's glob, also copy its old
 `result/<desk>-glob` somewhere before you build the new version, and upload it
 at `/docket/upload` after putting the old version back.
 
-If the app came from another ship with `|install`, kiln, the part of your
-ship that installs and updates apps, keeps it in sync with that ship. That
-ship's next release would undo your upload. Tick **stop kiln syncing** on the
-confirm page to keep yours. That stops all of that ship's updates to the
-desk, until you run `|install ~that-ship %desk` again, which replaces your
-upload with their latest release.
+If the app came from another ship with `|install`, such as
+`~donmec-sallud`, kiln, the part of your ship that installs and updates apps,
+keeps it in sync with that ship. That ship's next release would undo your
+upload. Tick **stop kiln syncing** on the confirm page to keep yours. That
+stops all of that ship's updates to the desk, until you run
+`|install ~that-ship %desk` again, which replaces your upload with their
+latest release.
 
 ### Frontends
 
@@ -157,9 +173,9 @@ To let other ships install an app from yours, frontend included, publish it:
 `:treaty|publish %hits` makes it public and lists it in Landscape, and
 `|public %hits` is enough for `|install ~your-ship %hits`.
 
-The other apps have no glob: accountability, deskjam, harness and shelf
-serve their pages from their own agents. harness' frontend is in its desk,
-so `harness.deskjam` already has it.
+The other apps have no glob: accountability, burn, deskjam, harness,
+new-oxal and shelf serve their pages from their own agents. harness' frontend
+is in its desk, so `harness.deskjam` already has it.
 
 ### Kernel updates
 
@@ -188,6 +204,9 @@ has the details, including what to do when an upload goes wrong.
   use them.
 - accountability has no flake, and its `desk/` is the whole desk, which
   `flake.nix` packs as it is.
+- burn has no flake either. Its repo holds two whole desks, `burn/` and
+  `new-oxal/`, which `flake.nix` packs as they are, as `%burn` and
+  `%new-oxal`.
 - harness' repo builds its desk with `zig build`. It builds `fe/`, its
   frontend, into the desk's `web/`, which harness' own agent serves; fetches
   grubbery and some of Tlon's files with git, at commits it pins; and patches

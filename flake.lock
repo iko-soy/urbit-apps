@@ -16,6 +16,22 @@
         "type": "github"
       }
     },
+    "burn": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1786378297,
+        "narHash": "sha256-wezDIDk5CUhMXP2SDexV0c3xznZ7SbPx9vAoRTQaitM=",
+        "owner": "brbenji",
+        "repo": "burn",
+        "rev": "bcc3613ebec2c20d69cb2b3658b43b5ea4134b69",
+        "type": "github"
+      },
+      "original": {
+        "owner": "brbenji",
+        "repo": "burn",
+        "type": "github"
+      }
+    },
     "deskjam": {
       "inputs": {
         "fang-suite": "fang-suite",
@@ -250,6 +266,7 @@
     "root": {
       "inputs": {
         "accountability": "accountability",
+        "burn": "burn",
         "deskjam": "deskjam",
         "flake-utils": "flake-utils",
         "harness": "harness",

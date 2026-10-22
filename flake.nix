@@ -37,6 +37,13 @@
       flake = false;
     };
 
+    # Two full desks: burn/, whose agent is the backend, and new-oxal/, which
+    # serves burn's page at /new-oxal/plex.
+    burn = {
+      url = "github:brbenji/burn";
+      flake = false;
+    };
+
     harness = {
       url = "github:mopfel-winrux/urbit-agent-harness";
       flake = false;
@@ -62,6 +69,7 @@
       silo,
       vita,
       accountability,
+      burn,
       harness,
       harness-grubbery,
       harness-tlon,
@@ -235,6 +243,16 @@
           src = "${accountability}/desk";
         };
 
+        burn-desk = mkDeskjam {
+          desk = "burn";
+          src = "${burn}/burn";
+        };
+
+        new-oxal-desk = mkDeskjam {
+          desk = "new-oxal";
+          src = "${burn}/new-oxal";
+        };
+
         # harness' build.zig fetches grubbery, and its scripts/stage-tlon.mjs
         # Tlon's files, with git, at commits they pin. This git answers from
         # the inputs pinned to the same commits, and fails on any other, so a
@@ -330,6 +348,8 @@
           vita-glob = vita.packages.${system}.glob;
           accountability = accountability-desk;
           harness = harness-desk;
+          burn = burn-desk;
+          new-oxal = new-oxal-desk;
           default = jammer;
         };
 
